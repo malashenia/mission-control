@@ -42,15 +42,21 @@ export async function POST(request: NextRequest) {
 
     // Security: Prevent path traversal attacks
     const normalizedPath = path.normalize(relativePath);
-    if (normalizedPath.startsWith('..') || normalizedPath.startsWith('/')) {
+    if (normalizedPath.startsWith('..') || normalizedPath.startsWith('/') || normalizedPath.startsWith('\\') || normalizedPath.includes('..')) {
       return NextResponse.json(
         { error: 'Invalid path: must be relative and cannot traverse upward' },
         { status: 400 }
       );
     }
 
-    // Build full path
-    const fullPath = path.join(PROJECTS_BASE, normalizedPath);
+    // Build full path and verify it resolves within PROJECTS_BASE
+    const fullPath = path.resolve(PROJECTS_BASE, normalizedPath);
+    if (!fullPath.startsWith(path.resolve(PROJECTS_BASE))) {
+      return NextResponse.json(
+        { error: 'Invalid path: resolves outside project directory' },
+        { status: 400 }
+      );
+    }
 
     // Ensure base directory exists
     if (!existsSync(PROJECTS_BASE)) {

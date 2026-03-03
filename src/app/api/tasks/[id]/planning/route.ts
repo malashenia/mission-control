@@ -36,8 +36,9 @@ export async function GET(
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }
 
-    // Parse planning messages from JSON
-    const messages = task.planning_messages ? JSON.parse(task.planning_messages) : [];
+    // Parse planning messages from JSON (safe — returns [] on corrupt data)
+    let messages: Array<{ role: string; content: string }> = [];
+    try { messages = task.planning_messages ? JSON.parse(task.planning_messages) : []; } catch { /* corrupt JSON */ }
 
     // Find the latest question (last assistant message with question structure)
     const lastAssistantMessage = [...messages].reverse().find((m: { role: string }) => m.role === 'assistant');
@@ -51,14 +52,19 @@ export async function GET(
       }
     }
 
+    let spec = null;
+    let agents = null;
+    try { spec = task.planning_spec ? JSON.parse(task.planning_spec) : null; } catch { /* corrupt JSON */ }
+    try { agents = task.planning_agents ? JSON.parse(task.planning_agents) : null; } catch { /* corrupt JSON */ }
+
     return NextResponse.json({
       taskId,
       sessionKey: task.planning_session_key,
       messages,
       currentQuestion,
       isComplete: !!task.planning_complete,
-      spec: task.planning_spec ? JSON.parse(task.planning_spec) : null,
-      agents: task.planning_agents ? JSON.parse(task.planning_agents) : null,
+      spec,
+      agents,
       isStarted: messages.length > 0,
     });
   } catch (error) {

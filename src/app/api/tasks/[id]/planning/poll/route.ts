@@ -6,17 +6,10 @@ import { extractJSON, getMessagesFromOpenClaw } from '@/lib/planning-utils';
 import { Task } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
-// Planning timeout and poll interval configuration with validation
-const PLANNING_TIMEOUT_MS = parseInt(process.env.PLANNING_TIMEOUT_MS || '30000', 10);
-const PLANNING_POLL_INTERVAL_MS = parseInt(process.env.PLANNING_POLL_INTERVAL_MS || '2000', 10);
 
-// Validate environment variables
-if (isNaN(PLANNING_TIMEOUT_MS) || PLANNING_TIMEOUT_MS < 1000) {
-  throw new Error('PLANNING_TIMEOUT_MS must be a valid number >= 1000ms');
-}
-if (isNaN(PLANNING_POLL_INTERVAL_MS) || PLANNING_POLL_INTERVAL_MS < 100) {
-  throw new Error('PLANNING_POLL_INTERVAL_MS must be a valid number >= 100ms');
-}
+// Planning timeout and poll interval — safe defaults, no throw on invalid env
+const PLANNING_TIMEOUT_MS = Math.max(1000, parseInt(process.env.PLANNING_TIMEOUT_MS || '30000', 10) || 30000);
+const PLANNING_POLL_INTERVAL_MS = Math.max(100, parseInt(process.env.PLANNING_POLL_INTERVAL_MS || '2000', 10) || 2000);
 
 // Helper to handle planning completion with proper error handling and rollback
 async function handlePlanningCompletion(taskId: string, parsed: any, messages: any[]) {
@@ -118,9 +111,10 @@ async function handlePlanningCompletion(taskId: string, parsed: any, messages: a
     }
   }
 
-  // Trigger dispatch - use localhost since we're in the same process
+  // Trigger dispatch — derive URL from env or fallback to localhost:4000
   if (firstAgentId && !skipDispatch) {
-    const dispatchUrl = `http://localhost:${process.env.PORT || 3000}/api/tasks/${taskId}/dispatch`;
+    const baseUrl = process.env.MISSION_CONTROL_URL || `http://localhost:${process.env.PORT || 4000}`;
+    const dispatchUrl = `${baseUrl}/api/tasks/${taskId}/dispatch`;
     console.log(`[Planning Poll] Triggering dispatch: ${dispatchUrl}`);
 
     try {
@@ -233,7 +227,8 @@ export async function GET(
       });
     }
 
-    const messages = task.planning_messages ? JSON.parse(task.planning_messages) : [];
+    let messages: Array<{ role: string; content: string }> = [];
+    try { messages = task.planning_messages ? JSON.parse(task.planning_messages) : []; } catch { /* corrupt JSON */ }
     // Count only assistant messages for comparison, since OpenClaw only returns assistant messages
     const initialAssistantCount = messages.filter((m: any) => m.role === 'assistant').length;
 

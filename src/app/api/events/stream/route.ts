@@ -26,8 +26,9 @@ export async function GET(request: NextRequest) {
         try {
           controller.enqueue(encoder.encode(`: keep-alive\n\n`));
         } catch (error) {
-          // Client disconnected
+          // Client disconnected — clean up both interval and registration
           clearInterval(keepAliveInterval);
+          unregisterClient(controller);
         }
       }, 30000);
 

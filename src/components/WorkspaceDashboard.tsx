@@ -8,6 +8,7 @@ import { SystemHealthPanel } from '@/components/SystemHealthPanel';
 import { CronJobsPanel } from '@/components/CronJobsPanel';
 import { TokenUsagePanel } from '@/components/TokenUsagePanel';
 import { ErrorLogPanel } from '@/components/ErrorLogPanel';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export function WorkspaceDashboard() {
   const [workspaces, setWorkspaces] = useState<WorkspaceStats[]>([]);
@@ -76,20 +77,28 @@ export function WorkspaceDashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Row 1: System Health (full width) */}
-        <SystemHealthPanel />
+        <ErrorBoundary name="System Health">
+          <SystemHealthPanel />
+        </ErrorBoundary>
 
         {/* Row 2: Cron Jobs (60%) + Error Log (40%) */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-2">
           <div className="lg:col-span-3">
-            <CronJobsPanel />
+            <ErrorBoundary name="Cron Jobs">
+              <CronJobsPanel />
+            </ErrorBoundary>
           </div>
           <div className="lg:col-span-2">
-            <ErrorLogPanel />
+            <ErrorBoundary name="Error Log">
+              <ErrorLogPanel />
+            </ErrorBoundary>
           </div>
         </div>
 
         {/* Row 3: Token Usage */}
-        <TokenUsagePanel />
+        <ErrorBoundary name="Token Usage">
+          <TokenUsagePanel />
+        </ErrorBoundary>
 
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-2">All Workspaces</h2>

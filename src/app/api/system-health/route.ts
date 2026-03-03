@@ -4,6 +4,29 @@ import { execSync } from 'child_process';
 
 export const dynamic = 'force-dynamic';
 
+// Singleton pool — reused across requests, not created per-request
+let pgPool: Pool | null = null;
+
+function getPool(): Pool {
+  if (!pgPool) {
+    pgPool = new Pool({
+      host: process.env.POSTGRES_HOST || '127.0.0.1',
+      port: parseInt(process.env.POSTGRES_PORT || '5434', 10),
+      database: process.env.POSTGRES_DB || 'openclaw',
+      user: process.env.POSTGRES_USER || 'openclaw',
+      password: process.env.POSTGRES_PASSWORD || '',
+      connectionTimeoutMillis: 3000,
+      max: 2,
+      idleTimeoutMillis: 30000,
+    });
+    pgPool.on('error', (err) => {
+      console.error('[SystemHealth] Postgres pool error:', err.message);
+      pgPool = null;
+    });
+  }
+  return pgPool;
+}
+
 interface GatewayHealth {
   status: 'up' | 'down' | 'unknown';
   latencyMs: number | null;
@@ -66,14 +89,7 @@ async function checkGateway(): Promise<GatewayHealth> {
 
 async function checkPostgres(): Promise<PostgresHealth> {
   const port = parseInt(process.env.POSTGRES_PORT || '5434', 10);
-  const pool = new Pool({
-    host: process.env.POSTGRES_HOST || '127.0.0.1',
-    port,
-    database: process.env.POSTGRES_DB || 'openclaw',
-    user: process.env.POSTGRES_USER || 'openclaw',
-    password: process.env.POSTGRES_PASSWORD || '',
-    connectionTimeoutMillis: 3000,
-  });
+  const pool = getPool();
 
   try {
     const client = await pool.connect();
@@ -94,8 +110,6 @@ async function checkPostgres(): Promise<PostgresHealth> {
     }
   } catch {
     return { status: 'down', port, dbSizeMB: null, connections: null };
-  } finally {
-    await pool.end();
   }
 }
 
