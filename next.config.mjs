@@ -1,11 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    serverComponentsExternalPackages: ['better-sqlite3', 'playwright', 'playwright-core', 'css-tree'],
+    serverComponentsExternalPackages: ['better-sqlite3', 'pg', 'playwright', 'playwright-core', 'css-tree'],
   },
   webpack: (config) => {
     config.externals.push({
       'better-sqlite3': 'commonjs better-sqlite3',
+      'pg': 'commonjs pg',
+      'pg-native': 'commonjs pg-native',
       'playwright': 'commonjs playwright',
       'playwright-core': 'commonjs playwright-core',
       'css-tree': 'commonjs css-tree',
