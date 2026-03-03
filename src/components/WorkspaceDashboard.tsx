@@ -5,6 +5,7 @@ import { Plus, ArrowRight, Folder, Users, CheckSquare, Trash2, AlertTriangle, Ac
 import Link from 'next/link';
 import type { WorkspaceStats } from '@/lib/types';
 import { SystemHealthPanel } from '@/components/SystemHealthPanel';
+import { CronJobsPanel } from '@/components/CronJobsPanel';
 
 export function WorkspaceDashboard() {
   const [workspaces, setWorkspaces] = useState<WorkspaceStats[]>([]);
@@ -73,6 +74,7 @@ export function WorkspaceDashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <SystemHealthPanel />
+        <CronJobsPanel />
 
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-2">All Workspaces</h2>
