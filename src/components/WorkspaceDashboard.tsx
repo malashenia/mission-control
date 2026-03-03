@@ -75,10 +75,21 @@ export function WorkspaceDashboard() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Row 1: System Health (full width) */}
         <SystemHealthPanel />
-        <CronJobsPanel />
+
+        {/* Row 2: Cron Jobs (60%) + Error Log (40%) */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-2">
+          <div className="lg:col-span-3">
+            <CronJobsPanel />
+          </div>
+          <div className="lg:col-span-2">
+            <ErrorLogPanel />
+          </div>
+        </div>
+
+        {/* Row 3: Token Usage */}
         <TokenUsagePanel />
-        <ErrorLogPanel />
 
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-2">All Workspaces</h2>
