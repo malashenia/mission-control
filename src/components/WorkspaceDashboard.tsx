@@ -7,6 +7,7 @@ import type { WorkspaceStats } from '@/lib/types';
 import { SystemHealthPanel } from '@/components/SystemHealthPanel';
 import { CronJobsPanel } from '@/components/CronJobsPanel';
 import { TokenUsagePanel } from '@/components/TokenUsagePanel';
+import { ErrorLogPanel } from '@/components/ErrorLogPanel';
 
 export function WorkspaceDashboard() {
   const [workspaces, setWorkspaces] = useState<WorkspaceStats[]>([]);
@@ -77,6 +78,7 @@ export function WorkspaceDashboard() {
         <SystemHealthPanel />
         <CronJobsPanel />
         <TokenUsagePanel />
+        <ErrorLogPanel />
 
         <div className="mb-8">
           <h2 className="text-2xl font-bold mb-2">All Workspaces</h2>
